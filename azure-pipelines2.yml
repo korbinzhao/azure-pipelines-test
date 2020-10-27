@@ -1,0 +1,107 @@
+# Node.js with React
+# Build a Node.js project that uses React.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+trigger:
+  - master
+
+stages:
+- stage: Install
+  displayName: 'Install dependencies and run tests'
+
+  jobs:
+  - job: Install
+    strategy:
+      matrix:
+        linux:
+          imageName: 'ubuntu-16.04'
+        mac:
+          imageName: 'macOS-10.13'
+        macLatest:
+          imageName: 'macOS-latest'
+        win2019:
+          imageName: 'windows-latest'
+        win2016:
+          imageName: 'vs2017-win2016'
+        win1803:
+          imageName: 'win1803'
+
+    pool:
+      vmImage: $(imageName)
+    displayName: "Install Dependencies and Run Tests"
+
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: "10.x"
+      displayName: "Use Node.js 10"
+
+    - script: yarn --no-progress --frozen-lockfile
+      workingDirectory: "./demo-app"
+      displayName: "Install dependencies"
+
+    - script: yarn test
+      workingDirectory: "./demo-app"
+      displayName: "Run tests"
+
+- stage: Build
+  displayName: 'Build Gatsby Site'
+
+  jobs:
+  - job: Build
+    pool:
+      vmImage: 'ubuntu-16.04'
+    displayName: "Run Gatsby Build"
+
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: "10.x"
+      displayName: "Use Node.js 10"
+
+    - script: yarn --no-progress --frozen-lockfile
+      workingDirectory: "./demo-app"
+      displayName: "Install dependencies"
+
+    - script: yarn run build
+      workingDirectory: "./demo-app"
+      displayName: "Build Gatsby App"
+
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: "$(System.DefaultWorkingDirectory)/demo-app"
+        contents: |
+          public/**/*
+        targetFolder: "$(Build.ArtifactStagingDirectory)"
+        overWrite: true
+      displayName: "Copying built static files"
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        ArtifactName: 'el-tigre'
+
+- stage: Deploy
+  displayName: 'Deploy to Azure Storage'
+
+  jobs:
+  - job: Deploy
+    pool:
+      vmImage: 'windows-latest'
+      displayName: "Deploy Gatsby Site"
+
+    steps:
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          buildType: current
+          artifactName: 'el-tigre'
+          downloadPath: $(System.ArtifactsDirectory)/el-tigre
+
+      # - task: AzureFileCopy@3
+      #   inputs:
+      #     SourcePath: '$(System.ArtifactsDirectory)/el-tigre/el-tigre/public'
+      #     azureSubscription: 'Visual Studio Enterprise(2ffad064-f255-40d2-b72e-d70ccefefc1a)'
+      #     Destination: 'AzureBlob'
+      #     storage: 'mlusweltigre'
+      #     ContainerName: '$web'
+
+      
