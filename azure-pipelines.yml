@@ -61,64 +61,31 @@ stages:
     - script: echo 'stage2_job2_step2'
       displayName: "stage2_job2_step2"
 
-# - stage: Build
-#   displayName: 'Build Gatsby Site'
 
-#   jobs:
-#   - job: Build
-#     pool:
-#       vmImage: 'ubuntu-16.04'
-#     displayName: "Run Gatsby Build"
+- stage: Stage3
+  displayName: 'Stage3'
+  dependsOn: [Stage2, Stage1]
 
-#     steps:
-#     - task: NodeTool@0
-#       inputs:
-#         versionSpec: "10.x"
-#       displayName: "Use Node.js 10"
+  jobs:
+  - job: Stage3_Job1
+    pool:
+      vmImage: 'ubuntu-16.04'
+    displayName: "Stage3 Job1"
 
-#     - script: yarn --no-progress --frozen-lockfile
-#       workingDirectory: "./demo-app"
-#       displayName: "Install dependencies"
+    steps:
+    - script: echo 'stage3_job1_step1'
+      displayName: "stage3_job1_step1"
 
-#     - script: yarn run build
-#       workingDirectory: "./demo-app"
-#       displayName: "Build Gatsby App"
+    - script: echo 'stage3_job1_step2'
+      displayName: "stage3_job1_step2"
+  - job: Stage3_Job2
+    pool:
+      vmImage: 'ubuntu-16.04'
+    displayName: "Stage2 Job2"
 
-#     - task: CopyFiles@2
-#       inputs:
-#         sourceFolder: "$(System.DefaultWorkingDirectory)/demo-app"
-#         contents: |
-#           public/**/*
-#         targetFolder: "$(Build.ArtifactStagingDirectory)"
-#         overWrite: true
-#       displayName: "Copying built static files"
+    steps:
+    - script: echo 'stage3_job2_step1'
+      displayName: "stage3_job2_step1"
 
-#     - task: PublishBuildArtifacts@1
-#       inputs:
-#         ArtifactName: 'el-tigre'
-
-# - stage: Deploy
-#   displayName: 'Deploy to Azure Storage'
-
-#   jobs:
-#   - job: Deploy
-#     pool:
-#       vmImage: 'windows-latest'
-#       displayName: "Deploy Gatsby Site"
-
-#     steps:
-#       - task: DownloadBuildArtifacts@0
-#         inputs:
-#           buildType: current
-#           artifactName: 'el-tigre'
-#           downloadPath: $(System.ArtifactsDirectory)/el-tigre
-
-#       # - task: AzureFileCopy@3
-#       #   inputs:
-#       #     SourcePath: '$(System.ArtifactsDirectory)/el-tigre/el-tigre/public'
-#       #     azureSubscription: 'Visual Studio Enterprise(2ffad064-f255-40d2-b72e-d70ccefefc1a)'
-#       #     Destination: 'AzureBlob'
-#       #     storage: 'mlusweltigre'
-#       #     ContainerName: '$web'
-
-      
+    - script: echo 'stage3_job2_step2'
+      displayName: "stage3_job2_step2"
