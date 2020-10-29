@@ -65,7 +65,7 @@ stages:
 
 - stage: Stage3
   displayName: 'Stage3'
-
+  dependsOn: []
   jobs:
   - job: Stage3_Job1
     pool:
