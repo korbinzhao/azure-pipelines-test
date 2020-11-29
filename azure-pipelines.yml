@@ -15,7 +15,7 @@ resources:
     ports:
       - 6379:6379
  
-pool: penguins
+# pool: penguins
 #  vmImage: 'ubuntu-16.04'
  
 container: agent_container
