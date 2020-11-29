@@ -1,91 +1,37 @@
-# Node.js with React
-# Build a Node.js project that uses React.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
-trigger:
-  - master
+trigger: none
 
-stages:
-- stage: Stage1
-  displayName: 'Stage1'
-
-  jobs:
-  - job: Stage1_Job1
-    pool:
-      vmImage: 'ubuntu-16.04'
-    displayName: "Stage1 Job1"
-
-    steps:
-    - script: echo 'stage1_job1_step1'
-      displayName: "stage1_job1_step1"
-
-    - script: echo 'stage1_job1_step2'
-      displayName: "stage1_job1_step2"
-  - job: Stage1_Job2
-    pool:
-      vmImage: 'ubuntu-16.04'
-    displayName: "Stage1 Job2"
-
-    steps:
-    - script: echo 'stage1_job2_step1'
-      displayName: "stage1_job2_step1"
-
-    - script: echo 'stage1_job2_step2'
-      displayName: "stage1_job2_step2"
-
-
-- stage: Stage2
-  displayName: 'Stage2'
-  dependsOn: [Stage3, Stage1]
-
-  jobs:
-  - job: Stage2_Job1
-    pool:
-      vmImage: 'ubuntu-16.04'
-    displayName: "Stage2 Job1"
-
-    steps:
-    - script: echo 'stage2_job1_step1'
-      displayName: "stage2_job1_step1"
-
-    - script: echo 'stage2_job1_step2'
-      displayName: "stage2_job1_step2"
-  - job: Stage2_Job2
-    pool:
-      vmImage: 'ubuntu-16.04'
-    displayName: "Stage2 Job2"
-
-    steps:
-    - script: echo 'stage2_job2_step1'
-      displayName: "stage2_job2_step1"
-
-    - script: echo 'stage2_job2_step2'
-      displayName: "stage2_job2_step2"
-
-
-- stage: Stage3
-  displayName: 'Stage3'
-  dependsOn: []
-  jobs:
-  - job: Stage3_Job1
-    pool:
-      vmImage: 'ubuntu-16.04'
-    displayName: "Stage3 Job1"
-
-    steps:
-    - script: echo 'stage3_job1_step1'
-      displayName: "stage3_job1_step1"
-
-    - script: echo 'stage3_job1_step2'
-      displayName: "stage3_job1_step2"
-  - job: Stage3_Job2
-    pool:
-      vmImage: 'ubuntu-16.04'
-    displayName: "Stage2 Job2"
-
-    steps:
-    - script: echo 'stage3_job2_step1'
-      displayName: "stage3_job2_step1"
-
-    - script: echo 'stage3_job2_step2'
-      displayName: "stage3_job2_step2"
+resources:
+  containers:
+  - container: agent_container
+    image: microsoft/dotnet:2.1-sdk
+#    options: -e "Cache__Host=redis" -e "ConnectionStrings__Products=Server=sqlserver;User Id=sa;Password=StrongPassw0rd;Initial Catalog=FunctionalTests;MultipleActiveResultSets=true"
+  - container: sqlserver
+    image: microsoft/mssql-server-linux
+    options: -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=StrongPassw0rd"
+    ports:
+      - 1433:1433
+  - container: redis
+    image: redis:alpine
+    ports:
+      - 6379:6379
+ 
+pool: penguins
+#  vmImage: 'ubuntu-16.04'
+ 
+container: agent_container
+ 
+services:
+  sqlserver: sqlserver
+  redis_cache: redis
+ 
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet restore'
+  inputs:
+    command: restore
+    projects: '**/FunctionalTests.csproj'
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet test'
+  inputs:
+    command: test
+    projects: '**/FunctionalTests.csproj'
